@@ -10,16 +10,16 @@ import UIKit
 
 public class LGHorizontalLinearFlowLayout: UICollectionViewFlowLayout {
     
-    private var lastCollectionViewSize: CGSize = CGSizeZero
+    private var lastCollectionViewSize: CGSize = .zero
     
     public var scalingOffset: CGFloat = 200 //for offsets >= scalingOffset scale factor is minimumScaleFactor
     public var minimumScaleFactor: CGFloat = 0.7
     public var scaleItems: Bool = true
 
     
-    static func configureLayout(collectionView collectionView: UICollectionView, itemSize: CGSize, minimumLineSpacing: CGFloat) -> LGHorizontalLinearFlowLayout {
+    static func configureLayout(collectionView: UICollectionView, itemSize: CGSize, minimumLineSpacing: CGFloat) -> LGHorizontalLinearFlowLayout {
         let layout = LGHorizontalLinearFlowLayout()
-        layout.scrollDirection = .Horizontal
+        layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = minimumLineSpacing
         layout.itemSize = itemSize
         
@@ -29,8 +29,8 @@ public class LGHorizontalLinearFlowLayout: UICollectionViewFlowLayout {
         return layout
     }
 
-    override public func invalidateLayoutWithContext(context: UICollectionViewLayoutInvalidationContext) {
-        super.invalidateLayoutWithContext(context)
+    override public func invalidateLayout(with context: UICollectionViewLayoutInvalidationContext) {
+        super.invalidateLayout(with: context)
 
         if self.collectionView == nil {
             return
@@ -38,7 +38,7 @@ public class LGHorizontalLinearFlowLayout: UICollectionViewFlowLayout {
         
         let currentCollectionViewSize = self.collectionView!.bounds.size
         
-        if !CGSizeEqualToSize(currentCollectionViewSize, self.lastCollectionViewSize) {
+        if !currentCollectionViewSize.equalTo(self.lastCollectionViewSize) {
             self.configureInset()
             self.lastCollectionViewSize = currentCollectionViewSize
         }
@@ -51,18 +51,18 @@ public class LGHorizontalLinearFlowLayout: UICollectionViewFlowLayout {
 
         let inset = self.collectionView!.bounds.size.width / 2 - self.itemSize.width / 2
         self.collectionView!.contentInset = UIEdgeInsetsMake(0, inset, 0, inset)
-        self.collectionView!.contentOffset = CGPointMake(-inset, 0)
+        self.collectionView!.contentOffset = CGPoint(x: -inset, y: 0 )
     }
     
-    public override func targetContentOffsetForProposedContentOffset(proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+    public override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
         if self.collectionView == nil {
             return proposedContentOffset
         }
         
         let collectionViewSize = self.collectionView!.bounds.size
-        let proposedRect = CGRectMake(proposedContentOffset.x, 0, collectionViewSize.width, collectionViewSize.height)
+        let proposedRect = CGRect(x: proposedContentOffset.x, y: 0, width: collectionViewSize.width, height: collectionViewSize.height)
         
-        let layoutAttributes = self.layoutAttributesForElementsInRect(proposedRect)
+        let layoutAttributes = self.layoutAttributesForElements(in: proposedRect)
 
         if layoutAttributes == nil {
             return proposedContentOffset
@@ -72,7 +72,7 @@ public class LGHorizontalLinearFlowLayout: UICollectionViewFlowLayout {
         let proposedContentOffsetCenterX = proposedContentOffset.x + collectionViewSize.width / 2
 
         for attributes: UICollectionViewLayoutAttributes in layoutAttributes! {
-            if attributes.representedElementCategory != .Cell {
+            if attributes.representedElementCategory != .cell {
                 continue
             }
             
@@ -99,19 +99,19 @@ public class LGHorizontalLinearFlowLayout: UICollectionViewFlowLayout {
             newOffsetX += velocity.x > 0 ? pageWidth : -pageWidth
         }
         
-        return CGPointMake(newOffsetX, proposedContentOffset.y)
+        return CGPoint(x: newOffsetX, y: proposedContentOffset.y)
     }
     
-    public override func shouldInvalidateLayoutForBoundsChange(newBounds: CGRect) -> Bool {
+    public override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         return true
     }
     
-    public override func layoutAttributesForElementsInRect(rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+    public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         if !self.scaleItems || self.collectionView == nil {
-            return super.layoutAttributesForElementsInRect(rect)
+            return super.layoutAttributesForElements(in: rect)
         }
         
-        let superAttributes = super.layoutAttributesForElementsInRect(rect)
+        let superAttributes = super.layoutAttributesForElements(in: rect)
         
         if superAttributes == nil {
             return nil
@@ -120,12 +120,13 @@ public class LGHorizontalLinearFlowLayout: UICollectionViewFlowLayout {
         let contentOffset = self.collectionView!.contentOffset
         let size = self.collectionView!.bounds.size
 
-        let visibleRect = CGRectMake(contentOffset.x, contentOffset.y, size.width, size.height)
-        let visibleCenterX = CGRectGetMidX(visibleRect)
+        let visibleRect = CGRect(x: contentOffset.x, y: contentOffset.y, width: size.width, height: size.height)
+        let visibleCenterX = visibleRect.midX //CGRect.midX(visibleRect) //CGRectGetMidX(visibleRect)
         
         var newAttributesArray = Array<UICollectionViewLayoutAttributes>()
-
-        for (_, attributes) in superAttributes!.enumerate() {
+        
+        
+        for (_, attributes) in (superAttributes?.enumerated())! {
             let newAttributes = attributes.copy() as! UICollectionViewLayoutAttributes
             newAttributesArray.append(newAttributes)
             let distanceFromCenter = visibleCenterX - newAttributes.center.x
